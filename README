@@ -1,0 +1,14 @@
+1) Create ssh private and public key
+2) Put the name of the private the key into ansible.cfg, 
+3) Define private and public ssh key in terraform/variables.tf
+4) Run aws configure
+5) cd terraform
+6) terraform init
+7) terraform apply -target=module.s3
+8) mv backend.tf.s3 backend.tf
+9) terraform init -backend=true -backend-config="bucket=tf-state-b58x195"
+10) terraform apply -target=module.key_pair -target=module.base_linux
+11) terraform apply -target=module.manager
+12) terraform apply -target=null_resource.manager
+13) terraform apply -target=module.worker
+14) terraform apply -target=null_resource.worker

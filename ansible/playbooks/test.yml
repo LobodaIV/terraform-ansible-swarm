@@ -1,0 +1,23 @@
+---
+- hosts: localhost
+  gather_facts: False
+  pre_tasks:
+  tasks:
+  - name: Get ip
+    command: curl ifconfig.co
+    register: myip
+  - debug: var=myip.stdout
+
+- hosts: localhost
+  gather_facts: False
+  pre_tasks:
+  vars:
+    var1: "{{ extra }}"
+    var2: "{{ lookup('file','./ip.txt') }}"
+
+#  vars:
+#    content: "{{ lookup('file','./ip.txt') }}"
+  tasks:
+#  - debug: msg={{ content }}
+  #- local_action: copy content={{ myip.stdout }} dest="./ip.txt"
+  - debug: msg="{{ var1 }}"

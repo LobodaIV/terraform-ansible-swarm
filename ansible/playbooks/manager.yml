@@ -1,0 +1,52 @@
+---
+- hosts: dev_manager01
+  gather_facts: False
+  become: yes
+
+  pre_tasks:
+  - name: Install python for Ansible
+    raw: sudo bash -c "test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)"
+    changed_when: False
+  - name: Register release var
+    command: lsb_release -cs
+    register: release
+  - name: Get public ip
+    ipify_facts:
+   
+  tasks:
+  - name: Required packages
+    apt: name={{ item }} state=installed
+    with_items:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+  - name: Add gpg key for docker
+    command: bash -c "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
+  - name: Docker repo
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ release.stdout }} stable
+      state: present
+  - name: Docker installation is running
+    apt:
+      name: docker-ce
+      state: present
+      update_cache: yes
+  - name: Add ubuntu user to the docker group
+    user:
+      append: yes
+      groups: docker
+      name: ubuntu
+
+  - name: Swarm initialization
+    command: docker swarm init --advertise-addr {{ ipify_public_ip }}
+
+  - name: Take worker token
+    command: docker swarm join-token worker -q
+    register: worker_token
+
+  - name: Save worker token to file
+    local_action: copy content={{ worker_token.stdout }} dest="./worker_token.txt"
+ 
+  - name: Show worker token
+    debug: var=worker_token.stdout
