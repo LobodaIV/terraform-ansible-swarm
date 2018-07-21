@@ -5,7 +5,7 @@
 
   pre_tasks:
   - name: Install python for Ansible
-    raw: sudo bash -c "test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)"
+    raw: test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
     changed_when: False
   - name: Register release var
     command: lsb_release -cs

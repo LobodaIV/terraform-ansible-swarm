@@ -14,13 +14,13 @@ module "base_linux" {
 }
 
 module "s3" {
-  source	  = "modules/s3" 
+  source	  = "./modules/s3" 
 }
 
 
 module "manager" {
   ami              = "${data.aws_ami.image.id}"
-  source           = "modules/manager"
+  source           = "./modules/manager"
   pub_key_path     = "${var.pub_key_path}"
   ssh_user         = "${var.ssh_user}"
   private_key_path = "${var.private_key_path}"
@@ -32,7 +32,7 @@ module "manager" {
 
 module "worker" {
   ami              = "${data.aws_ami.image.id}"
-  source           = "modules/worker"
+  source           = "./modules/worker"
   pub_key_path     = "${var.pub_key_path}"
   ssh_user         = "${var.ssh_user}"
   private_key_path = "${var.private_key_path}"
@@ -45,22 +45,28 @@ module "worker" {
 
 
 resource null_resource "manager" {
+
   depends_on = ["module.manager"]
 
+  triggers = {
+    cluster_instance_ids = "${join(",", module.manager.id_list)}"
+  }
+
+ 
   provisioner "local-exec" {
     command = "cd ../ansible && ansible-playbook playbooks/manager.yml"
   }
 }
 
 resource null_resource "worker" {
-  depends_on = ["module.worker"]
-  
+   depends_on = ["null_resource.manager", "module.manager","module.worker"] 
+ 
   triggers = {
     cluster_instance_ids = "${join(",", module.worker.id_list)}"
   }
 
   provisioner "local-exec" {
-    command = "cd ../ansible && ansible-playbook -e manager_ip=${module.manager.public_ip} playbooks/worker.yml"
+    command = "sleep 30; cd ../ansible && ansible-playbook -e manager_ip=${module.manager.public_ip} playbooks/worker.yml"
   }
 }
 
