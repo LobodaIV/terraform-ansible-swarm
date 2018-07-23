@@ -13,11 +13,6 @@ module "base_linux" {
   env    = "${var.env}"
 }
 
-module "s3" {
-  source	  = "./modules/s3" 
-}
-
-
 module "manager" {
   ami              = "${data.aws_ami.image.id}"
   source           = "./modules/manager"
