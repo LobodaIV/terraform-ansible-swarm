@@ -4,8 +4,20 @@
   become: yes
 
   pre_tasks:
+  - name: Wait for automatic system updates
+    become: yes
+    raw: |
+      i="0"
+      while [ $i -lt 15 ] 
+      do 
+        if [ $(fuser /var/lib/dpkg/lock) ]; then 
+           i="0" 
+        fi 
+        sleep 1 
+        i=$[$i+1] 
+      done
   - name: Install python for Ansible
-    raw: test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
+    raw: sudo test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
     changed_when: False
   - name: Register release var
     command: lsb_release -cs
