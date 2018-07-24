@@ -2,23 +2,16 @@
 - hosts: dev_manager01
   gather_facts: False
   become: yes
+  remote_user: ubuntu
 
   pre_tasks:
-  - name: Wait for automatic system updates
-    become: yes
-    raw: |
-      i="0"
-      while [ $i -lt 15 ] 
-      do 
-        if [ $(fuser /var/lib/dpkg/lock) ]; then 
-           i="0" 
-        fi 
-        sleep 1 
-        i=$[$i+1] 
-      done
   - name: Install python for Ansible
-    raw: sudo test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
-    changed_when: False
+    raw: test -e /usr/bin/python || (apt-get -y update && apt-get install -y python-minimal)
+    register: result
+    retries: 10
+    delay: 1
+    ignore_errors: yes
+    until: result.rc == 0
   - name: Register release var
     command: lsb_release -cs
     register: release
